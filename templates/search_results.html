@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil: {{ keyword }} - {{ project_name }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --dark-bg: #212529;
+            --light-bg: #2c3034; /* Warna card/konten */
+            --text-light: #f8f9fa;
+            --text-muted-light: #adb5bd;
+            --border-color: #495057;
+            --success-bg: #198754; /* Hijau untuk sukses */
+            --info-bg: #0dcaf0;   /* Biru muda untuk info */
+            --warning-bg: #ffc107; /* Kuning untuk warning */
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            font-family: 'Open Sans', sans-serif;
+            padding-top: 1.5rem;
+            padding-bottom: 2rem;
+        }
+
+        .container-fluid { /* Gunakan container-fluid untuk lebar penuh jika log panjang */
+            max-width: 1140px; /* Batasi lebar maksimum agar tidak terlalu lebar di layar besar */
+            background-color: var(--dark-bg); /* Latar belakang utama tetap gelap */
+            padding: 0; /* Hapus padding default container-fluid */
+        }
+        .content-wrapper { /* Wrapper untuk konten utama dengan padding */
+             background-color: var(--light-bg);
+             padding: 2rem;
+             border-radius: 0.5rem;
+             box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2);
+             margin-bottom: 1.5rem;
+        }
+
+
+        .header-title-bar {
+            background-color: var(--light-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem 0.5rem 0 0; /* Rounded corners atas */
+            margin-bottom: 0; /* Hapus margin bawah jika menyatu dengan konten */
+            border-bottom: 1px solid var(--border-color);
+        }
+         .header-title-bar h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-color);
+            font-weight: 600;
+         }
+         .header-title-bar .text-muted { color: var(--text-muted-light) !important; }
+
+
+        .result-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 0;
+        }
+        .result-item:last-child { border-bottom: none; }
+        .result-item h5 a { color: var(--primary-color); font-weight: 600; font-family: 'Montserrat', sans-serif; }
+        .result-item h5 a:hover { color: #3395ff; text-decoration: underline;}
+        .result-item .url-link { font-size: 0.85em; color: var(--text-muted-light); word-break: break-all; display: block; margin-top: 0.25rem;}
+        .preview-text { font-size: 0.95em; color: var(--text-light); margin-top: 0.75rem; line-height: 1.6; }
+        .level-badge { font-size: 0.7em; padding: 0.3em 0.6em; background-color: var(--secondary-color) !important; color: white !important; font-weight: 500; }
+        .anchor-text-info { font-size: 0.8em; color: var(--text-muted-light); font-style: italic; }
+        
+        .search-summary-info { font-size: 1.05rem; margin-bottom: 1rem; color: var(--text-light); }
+        .search-summary-info .badge-success { background-color: var(--success-bg) !important; color: white; }
+        
+        .crawl-summary-alert {
+            background-color: var(--light-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
+            padding: 1rem;
+            border-radius: 0.3rem;
+        }
+        .crawl-summary-alert strong { color: var(--primary-color); }
+        .crawl-summary-alert a { color: var(--info-bg); }
+
+        .alert-warning { background-color: #664d03; color: #ffecb5; border-color: var(--warning-bg);}
+        .alert-info { background-color: #055160; color: #cff4fc; border-color: var(--info-bg);}
+
+        .crawl-log-container {
+            margin-top: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.3rem;
+            background-color: var(--dark-bg); /* Latar belakang log box */
+        }
+        .crawl-log-header {
+            background-color: var(--light-bg); /* Header log box */
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-light);
+        }
+        .crawl-log-body {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 1rem;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #c8c8c8; /* Warna teks log */
+        }
+        .crawl-log-body p { margin-bottom: 0.2rem; }
+        .log-error { color: #f85149; font-weight: bold; } /* Merah terang untuk error */
+        .log-success { color: #28a745; } /* Hijau untuk sukses */
+        .log-info { color: #17a2b8; } /* Biru info */
+        .log-update { color: #ffc107; } /* Kuning untuk update */
+
+        .btn-back-form {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+        .btn-back-form:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+        hr { border-top: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="content-wrapper">
+            <div class="header-title-bar d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('index', institution=institution_tag, keyword=keyword) }}" class="btn btn-sm btn-back-form">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16" style="vertical-align: -0.125em;">
+                      <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                    </svg>
+                    Form Pencarian
+                </a>
+                <h3 class="mb-0 text-center">
+                    Hasil untuk: "<strong>{{ keyword if keyword else '(Kosong)' }}</strong>"
+                </h3>
+                <span class="text-muted">Target: {{ current_institution_name }}</span>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="color: currentColor;">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% if crawl_summary %}
+            <div class="crawl-summary-alert mt-3" role="alert">
+                <strong>Ringkasan Crawling:</strong> {{ crawl_summary }}
+                <small class="d-block mt-1"><a href="{{ url_for('view_crawl_tree_route', institution_tag=institution_tag) }}">Lihat struktur pohon data tercrawl.</a></small>
+            </div>
+            {% endif %}
+
+            {% if error_message and not results %}
+                <div class="alert alert-warning mt-3" role="alert">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+
+            {% if results %}
+                <p class="search-summary-info mt-4">Ditemukan <span class="badge badge-success">{{ results|length }}</span> hasil yang relevan:</p>
+                {% for result in results %}
+                    <div class="result-item">
+                        <h5>
+                            <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>
+                            <span class="badge badge-secondary level-badge ml-2">L{{ result.level }}</span>
+                        </h5>
+                        <a href="{{ result.url }}" target="_blank" class="url-link" title="Kunjungi: {{ result.url }}">{{ result.url }}</a>
+                        {% if result.anchor_text and result.level > 0 %}
+                            <small class="anchor-text-info d-block">Dari <a href="{{ result.parent_url }}" target="_blank" title="Induk: {{result.parent_url}}">induk</a> via: "{{ result.anchor_text | truncate(70) }}"</small>
+                        {% elif result.level == 0 %}
+                            <small class="anchor-text-info d-block">(URL Awal / Seed)</small>
+                        {% endif %}
+                        <p class="preview-text mt-2 mb-0">{{ result.content_preview | safe | truncate(300) }}</p>
+                    </div>
+                {% endfor %}
+            {% elif not error_message and keyword %} 
+                 <div class="alert alert-info text-center mt-4" role="alert">
+                    Tidak ada hasil yang cocok ditemukan untuk "<strong>{{ keyword }}</strong>" pada target "<strong>{{ current_institution_name }}</strong>".
+                </div>
+            {% endif %}
+
+            {% if crawl_log %}
+            <div class="crawl-log-container">
+                <div class="crawl-log-header">
+                    Detail Log Proses Crawling
+                </div>
+                <div class="crawl-log-body">
+                    {% for log_entry in crawl_log %}
+                        {% set log_class = '' %}
+                        {% if 'Error' in log_entry or 'GAGAL' in log_entry or 'Forbidden' in log_entry or 'Timeout' in log_entry %}
+                            {% set log_class = 'log-error' %}
+                        {% elif 'SUKSES:' in log_entry %}
+                            {% set log_class = 'log-success' %}
+                        {% elif 'UPDATE:' in log_entry %}
+                            {% set log_class = 'log-update' %}
+                        {% elif 'Memproses' in log_entry and 'L0:' not in log_entry and 'L1:' not in log_entry and 'L2:' not in log_entry and 'L3:' not in log_entry and 'L4:' not in log_entry and 'L5:' not in log_entry %}
+                             {# Entri log umum, mungkin tidak perlu kelas khusus atau bisa diberi kelas default #}
+                        {% elif 'Seed URL' in log_entry or 'Memulai crawling' in log_entry or 'Crawling untuk institusi' in log_entry and 'selesai' in log_entry %}
+                             {% set log_class = 'log-info' %}
+                        {% endif %}
+                        <p class="{{ log_class }}">{{ log_entry }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <hr class="my-4">
+            <div class="text-center">
+                 <a href="{{ url_for('index', institution=institution_tag, keyword=keyword) }}" class="btn btn-primary btn-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 0.3em;">
+                      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                    </svg>
+                    Pencarian Baru
+                </a>
+            </div>
+             <p class="text-center text-muted-light mt-4 footer-note"><small>&copy; {{ G.current_year if G and G.current_year else '2025' }} {{ project_name }}.</small></p>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project_name }} - Pencarian & Crawl</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff; 
+            --secondary-color: #6c757d; 
+            --dark-bg: #212529; 
+            --light-bg: #343a40; 
+            --text-light: #f8f9fa; 
+            --text-muted-light: #adb5bd; 
+            --border-color: #495057; 
+            --input-bg: #2c3034; 
+        }
+        body { background-color: var(--dark-bg); color: var(--text-light); font-family: 'Open Sans', sans-serif; padding-top: 2rem; padding-bottom: 2rem; }
+        .container { max-width: 750px; background-color: var(--light-bg); padding: 2.5rem; border-radius: 0.75rem; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.25); }
+        .header-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 2.5rem; letter-spacing: 2px; color: var(--primary-color); margin-bottom: 0.5rem; }
+        .header-subtitle { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 0.9rem; color: var(--text-muted-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2rem; }
+        .form-control, .custom-select { background-color: var(--input-bg); color: var(--text-light); border: 1px solid var(--border-color); border-radius: 0.3rem; padding: 0.75rem 1rem; }
+        .form-control:focus, .custom-select:focus { background-color: var(--input-bg); color: var(--text-light); border-color: var(--primary-color); box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); }
+        .form-control::placeholder { color: var(--text-muted-light); }
+        .form-control.is-invalid { border-color: #dc3545; }
+        .invalid-feedback { color: #f85149; }
+        label { font-weight: 500; color: var(--text-light); margin-bottom: 0.75rem; font-family: 'Montserrat', sans-serif; }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); font-weight: 600; padding: 0.75rem 1.5rem; font-size: 1.1rem; letter-spacing: 0.5px; transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
+        .btn-primary:hover { background-color: #0056b3; border-color: #0056b3; }
+        .btn-primary .bi { vertical-align: -0.125em; margin-right: 0.5em; }
+        .nav-pills .nav-link { color: var(--text-muted-light); border: 1px solid var(--border-color); margin: 0 5px; border-radius: 0.3rem; }
+        .nav-pills .nav-link.active { color: var(--text-light); background-color: var(--primary-color); border-color: var(--primary-color); }
+        .tab-content { border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 0.3rem; margin-top: -1px; background-color: var(--light-bg); }
+        .form-check-label { color: var(--text-light); font-weight: normal; }
+        .form-check-input { background-color: var(--input-bg); border: 1px solid var(--border-color); }
+        .form-check-input:checked { background-color: var(--primary-color); border-color: var(--primary-color); }
+        .alert { margin-top: 1.5rem; border-width: 1px; }
+        .alert-danger { background-color: rgba(220, 53, 69, 0.2); color: #f8d7da; border-color: rgba(220, 53, 69, 0.5);}
+        .alert-info { background-color: rgba(13, 202, 240, 0.15); color: #cff4fc; border-color: rgba(13, 202, 240, 0.4);}
+        .alert-success { background-color: rgba(25, 135, 84, 0.15); color: #d1e7dd; border-color: rgba(25, 135, 84, 0.4);}
+        .alert-warning { background-color: rgba(255, 193, 7, 0.15); color: #fff3cd; border-color: rgba(255, 193, 7, 0.4);}
+        #loadingMessageGlobal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(33,37,41,0.85); z-index: 1050; flex-direction: column; justify-content: center; align-items: center; }
+        #loadingMessageGlobal .spinner-border { width: 3rem; height: 3rem; color: var(--primary-color); }
+        #loadingMessageGlobal p { color: var(--text-light); margin-top: 1rem; font-size: 1.1rem; }
+        .link-view-all { color: var(--primary-color); text-decoration: none; }
+        .link-view-all:hover { color: #3395ff; text-decoration: underline; }
+        hr { border-top: 1px solid var(--border-color); }
+        .footer-note small { color: var(--text-muted-light); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center">
+            <h1 class="header-title">{{ project_name | upper }}</h1>
+            <p class="header-subtitle">Sistem Pencarian Informasi Publik</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="color: currentColor; opacity: 0.7;">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('initiate_action_route') }}" method="POST" id="searchCrawlForm">
+            <div class="form-group mb-4">
+                <label for="keyword">KATA KUNCI PENCARIAN (WAJIB)</label>
+                <div class="input-group">
+                     <div class="input-group-prepend">
+                        <span class="input-group-text" style="background-color: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-muted-light);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <input type="text" class="form-control form-control-lg" id="keyword" name="keyword" 
+                           placeholder="Contoh: beasiswa, penelitian, sbmptn" value="{{ keyword_prefili if keyword_prefili else '' }}" required>
+                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <label>TARGET CRAWLING</label>
+                <ul class="nav nav-pills nav-fill mb-3" id="targetTypeTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="institution-tab-btn" data-toggle="pill" href="#institutionContent" role="tab" aria-controls="institutionContent" aria-selected="true">Pilih Institusi</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="manual-url-tab-btn" data-toggle="pill" href="#manualUrlContent" role="tab" aria-controls="manualUrlContent" aria-selected="false">URL Manual</a>
+                    </li>
+                </ul>
+                <input type="hidden" name="target_type" id="active_target_type" value="institution"> 
+                <div class="tab-content" id="targetTypeTabContent">
+                    <div class="tab-pane fade show active p-3" id="institutionContent" role="tabpanel" aria-labelledby="institution-tab-btn">
+                        <div class="form-group mb-0">
+                            <label for="institution_tag" class="sr-only">Institusi:</label>
+                            <select name="institution_tag" id="institution_tag" class="custom-select custom-select-lg">
+                                {% for tag, config in available_institutions.items() %}
+                                    <option value="{{ tag }}" {% if tag == selected_institution_tag %}selected{% endif %}>
+                                        {{ config.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade p-3" id="manualUrlContent" role="tabpanel" aria-labelledby="manual-url-tab-btn">
+                        <div class="form-group mb-0">
+                            <label for="manual_seed_url" class="sr-only">Seed URL Manual:</label>
+                            <input type="url" class="form-control form-control-lg" id="manual_seed_url" name="manual_seed_url" 
+                                   placeholder="https://contoh-domain.com" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row mb-3">
+                <div class="form-group col-md-6">
+                    <label for="crawl_method">METODE</label>
+                    <select name="crawl_method" id="crawl_method" class="custom-select custom-select-lg">
+                        <option value="bfs" selected>BFS</option>
+                        <option value="dfs" disabled>DFS (Segera)</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="max_depth">KEDALAMAN (0-{{ max_depth_limit }})</label> 
+                    <input type="number" class="form-control form-control-lg" id="max_depth" name="max_depth" value="{{ max_depth_limit }}" min="0" max="{{ max_depth_limit }}">
+                </div>
+            </div>
+             <div class="form-group form-check mb-4">
+                <input type="checkbox" class="form-check-input" id="clear_data_on_search_crawl" name="clear_data_on_search_crawl" value="yes">
+                <label class="form-check-label" for="clear_data_on_search_crawl">
+                    Hapus data lama untuk target ini sebelum crawl baru?
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitButton">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16" style="vertical-align: -0.125em;">
+                  <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                </svg>
+                CARI & CRAWL
+            </button>
+             <p class="text-center mt-3">
+                <small>
+                    <a href="{{ url_for('view_crawl_tree_route', institution_tag=(selected_institution_tag if selected_institution_tag else default_institution_tag)) }}" id="viewAllDataLink" class="link-view-all">
+                        Lihat Semua Data Tercrawl
+                    </a>
+                </small>
+            </p>
+        </form>
+        
+        <hr class="my-4">
+        <p class="text-center footer-note"><small>&copy; {{ g.current_year }} {{ project_name }}. Dibuat dengan semangat.</small></p>
+    </div>
+
+    <div id="loadingMessageGlobal">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p class="mt-3"><strong>MEMPROSES PERMINTAAN ANDA...</strong></p>
+        <p><small>Proses crawling sedang berjalan dan bisa memakan waktu. Mohon bersabar dan jangan menutup atau me-refresh halaman ini.</small></p>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            function updateActiveFields(activeTabId) {
+                var viewAllDataLink = $('#viewAllDataLink');
+                var baseViewAllDataUrl = "{{ url_for('view_crawl_tree_route', institution_tag='PLACEHOLDER') }}";
+                var currentSelectedInstitutionTag = $('#institution_tag').val();
+                var defaultInstitutionTagJS = "{{ default_institution_tag }}";
+
+                if (activeTabId === "#institutionContent") {
+                    $('#active_target_type').val('institution');
+                    $('#institution_tag').prop('disabled', false).prop('required', true);
+                    $('#manual_seed_url').prop('disabled', true).prop('required', false).val('');
+                    if(currentSelectedInstitutionTag) {
+                        viewAllDataLink.attr('href', baseViewAllDataUrl.replace('PLACEHOLDER', currentSelectedInstitutionTag));
+                        viewAllDataLink.text('Lihat Data untuk ' + $('#institution_tag option:selected').text().trim());
+                    } else {
+                         viewAllDataLink.attr('href', baseViewAllDataUrl.replace('PLACEHOLDER', defaultInstitutionTagJS));
+                         viewAllDataLink.text('Lihat Data untuk Target Default');
+                    }
+                } else if (activeTabId === "#manualUrlContent") {
+                    $('#active_target_type').val('manual_url');
+                    $('#institution_tag').prop('disabled', true).prop('required', false);
+                    $('#manual_seed_url').prop('disabled', false).prop('required', true);
+                    
+                    var manualUrlValue = $('#manual_seed_url').val();
+                    if (manualUrlValue) {
+                        try {
+                            var parsedManualUrl = new URL(manualUrlValue);
+                            var manualUrlDomain = parsedManualUrl.hostname.replace(/\./g, '_').replace(/-/g, '_');
+                            if (manualUrlDomain) {
+                                var manualTag = 'manual_' + manualUrlDomain;
+                                viewAllDataLink.attr('href', baseViewAllDataUrl.replace('PLACEHOLDER', manualTag));
+                                viewAllDataLink.text('Lihat Data untuk ' + parsedManualUrl.hostname);
+                            } else {
+                                 viewAllDataLink.text('Lihat Data (URL tidak valid)');
+                            }
+                        } catch (e) {
+                            viewAllDataLink.text('Lihat Data (URL tidak valid)');
+                        }
+                    } else {
+                        viewAllDataLink.text('Lihat Data (Masukkan URL manual)');
+                    }
+                }
+            }
+
+            $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+                var targetPaneId = $(e.target).attr("href");
+                updateActiveFields(targetPaneId);
+            });
+
+            $('#institution_tag').on('change', function() {
+                if ($('#institution-tab-btn').hasClass('active')) { 
+                    updateActiveFields("#institutionContent");
+                }
+            });
+            
+            $('#manual_seed_url').on('input', function() {
+                 if ($('#manual-url-tab-btn').hasClass('active')) {
+                    updateActiveFields("#manualUrlContent");
+                 }
+            });
+
+            var initialActiveTabId = $('#targetTypeTab .nav-link.active').attr('href');
+            updateActiveFields(initialActiveTabId || "#institutionContent");
+
+            $('#searchCrawlForm').on('submit', function(e) {
+                var keywordValid = true;
+                var manualUrlValid = true;
+                var maxDepthValid = true;
+
+                $('.invalid-feedback').remove();
+                $('#keyword').removeClass('is-invalid');
+                $('#manual_seed_url').removeClass('is-invalid');
+                $('#max_depth').removeClass('is-invalid');
+
+                if ($('#keyword').val().trim() === '') {
+                    $('#keyword').addClass('is-invalid');
+                    $('#keyword').after('<div class="invalid-feedback" style="display:block;">Kata kunci wajib diisi.</div>');
+                    keywordValid = false;
+                }
+                
+                if ($('#active_target_type').val() === 'manual_url') {
+                    var manualUrl = $('#manual_seed_url').val().trim();
+                    if (manualUrl === '') {
+                        $('#manual_seed_url').addClass('is-invalid');
+                         $('#manual_seed_url').after('<div class="invalid-feedback" style="display:block;">URL manual wajib diisi.</div>');
+                        manualUrlValid = false;
+                    } else {
+                        try {
+                            new URL(manualUrl); 
+                        } catch (err) {
+                            $('#manual_seed_url').addClass('is-invalid');
+                            $('#manual_seed_url').after('<div class="invalid-feedback" style="display:block;">Format URL manual tidak valid.</div>');
+                            manualUrlValid = false;
+                        }
+                    }
+                }
+                
+                var maxDepthVal = parseInt($('#max_depth').val());
+                // Ambil max_depth_limit dari data-attribute atau variabel JS jika perlu,
+                // untuk sekarang kita hardcode batas atas validasi JS nya
+                var maxDepthAllowedJS = 5; // Sesuaikan dengan max di input HTML
+                if (isNaN(maxDepthVal) || maxDepthVal < 0 || maxDepthVal > maxDepthAllowedJS) {
+                    $('#max_depth').addClass('is-invalid');
+                    $('#max_depth').after('<div class="invalid-feedback" style="display:block;">Kedalaman harus antara 0 dan ' + maxDepthAllowedJS + '.</div>');
+                    maxDepthValid = false;
+                }
+
+                if (!keywordValid || !manualUrlValid || !maxDepthValid) {
+                    e.preventDefault(); 
+                    return;
+                }
+                
+                // Jangan disable tombol submit, tapi tampilkan overlay loading global
+                $('#loadingMessageGlobal').css('display', 'flex'); 
+                // Form akan disubmit secara normal setelah ini
+            });
+        });
+    </script>
+</body>
+</html>

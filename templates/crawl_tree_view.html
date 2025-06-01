@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Struktur Crawl: {{ current_institution_name }} - {{ project_name }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding-top: 1.5rem; padding-bottom: 1.5rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .container-fluid { max-width: 1200px; background-color: #ffffff; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1); }
+        /* Styling untuk struktur pohon */
+        .tree ul { list-style-type: none; padding-left: 20px; border-left: 1px solid #dee2e6; }
+        .tree li { margin: 10px 0; position: relative; }
+        .tree li::before { /* Garis horizontal kecil sebelum item */
+            content: ""; 
+            position: absolute; 
+            top: 10px; /* Sesuaikan agar sejajar dengan teks atau ikon */
+            left: -12px; 
+            width: 10px; 
+            height: 1px; 
+            background-color: #adb5bd; 
+        }
+        .tree a { word-break: break-all; color: #007bff; }
+        .tree a:hover { text-decoration: underline; color: #0056b3;}
+        .page-title { font-weight: 600; color: #343a40; }
+        .anchor-text { font-style: italic; color: #6c757d; font-size: 0.9em; }
+        .level-badge { font-size: 0.8em; padding: 0.25em 0.5em; margin-right: 8px; background-color: #6c757d !important; color: white !important;}
+        .header-icon { font-size: 1.8rem; margin-right: 0.6rem; vertical-align: text-bottom; }
+        .card-header-custom { background-color: #e9ecef; padding: 0.75rem 1.25rem; margin-bottom: 0; border-bottom: 1px solid rgba(0,0,0,.125); }
+        .node-content { padding: 5px; border-radius: 4px; }
+        .node-content:hover { background-color: #f1f3f5; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+            <a href="{{ url_for('index', institution=institution_tag) }}" class="btn btn-outline-secondary btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16" style="vertical-align: text-bottom;">
+                  <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+                </svg>
+                Kembali ke Dashboard
+            </a>
+            <h3 class="mb-0 text-center text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-diagram-3-fill header-icon" viewBox="0 0 16 16">
+                    <path d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zM8.5 5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1zM0 11.5A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm4.5.5A1.5 1.5 0 0 1 7.5 10h1A1.5 1.5 0 0 1 10 11.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm4.5.5a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z"/>
+                </svg>
+                Struktur Data Crawl: <strong>{{ current_institution_name }}</strong>
+            </h3>
+            <span class="text-muted">Maks Kedalaman: {{ max_depth_limit }}</span>
+        </div>
+        
+        {% macro render_node(node) %}
+            <li>
+                <div class="node-content">
+                    <span class="badge badge-secondary level-badge">L{{ node.level }}</span>
+                    <strong class="page-title">{{ node.title | truncate(120) }}</strong>
+                    <br>
+                    <a href="{{ node.url }}" target="_blank" title="Kunjungi: {{ node.url }}">{{ node.url | truncate(100) }}</a>
+                    {% if node.anchor_text and node.level > 0 %}
+                        <br><span class="anchor-text" title="Teks tautan dari halaman induk">(via: "{{ node.anchor_text | truncate(80) }}")</span>
+                    {% elif node.level == 0 %}
+                         <br><span class="anchor-text">(URL Awal / Seed)</span>
+                    {% endif %}
+                </div>
+                
+                {% if node.children %}
+                    <ul>
+                        {% for child in node.children %}
+                            {{ render_node(child) }} {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endmacro %}
+
+        <div class="card mt-3">
+            <div class="card-header card-header-custom">
+                Representasi Pohon Halaman (Max {{ max_depth_limit }} Level)
+            </div>
+            <div class="card-body">
+                <div class="tree">
+                    {% if tree_roots %}
+                        <ul>
+                            {% for root_node in tree_roots %}
+                                {{ render_node(root_node) }} {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="alert alert-info text-center" role="alert">
+                            Belum ada data yang berhasil di-crawl untuk institusi <strong>{{ current_institution_name }}</strong>, atau data tidak dapat membentuk struktur pohon.
+                            Silakan <a href="{{ url_for('index', institution=institution_tag) }}" class="alert-link">kembali ke dashboard</a> untuk memulai proses crawling.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
