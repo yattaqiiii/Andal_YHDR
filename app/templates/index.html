@@ -70,7 +70,7 @@
             {% endif %}
         {% endwith %}
 
-        <form action="{{ url_for('initiate_action_route') }}" method="POST" id="searchCrawlForm">
+        <form action="{{ url_for('main.initiate_action_route') }}" method="POST" id="searchCrawlForm">
             <div class="form-group mb-4">
                 <label for="keyword">KATA KUNCI PENCARIAN (WAJIB)</label>
                 <div class="input-group">
@@ -87,34 +87,37 @@
             </div>
 
             <div class="form-group mb-4">
-                <label>TARGET CRAWLING</label>
-                <ul class="nav nav-pills nav-fill mb-3" id="targetTypeTab" role="tablist">
+                <label>TARGET</label> <ul class="nav nav-pills nav-fill mb-3" id="targetTypeTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link active" id="institution-tab-btn" data-toggle="pill" href="#institutionContent" role="tab" aria-controls="institutionContent" aria-selected="true">Pilih Institusi</a>
+                        <a class="nav-link active" id="institution-tab-btn" data-toggle="pill" href="#institutionContent" role="tab" aria-controls="institutionContent" aria-selected="true">Pilih Target Tersimpan</a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link" id="manual-url-tab-btn" data-toggle="pill" href="#manualUrlContent" role="tab" aria-controls="manualUrlContent" aria-selected="false">URL Manual</a>
+                        <a class="nav-link" id="manual-url-tab-btn" data-toggle="pill" href="#manualUrlContent" role="tab" aria-controls="manualUrlContent" aria-selected="false">URL Manual Baru</a>
                     </li>
                 </ul>
                 <input type="hidden" name="target_type" id="active_target_type" value="institution"> 
                 <div class="tab-content" id="targetTypeTabContent">
                     <div class="tab-pane fade show active p-3" id="institutionContent" role="tabpanel" aria-labelledby="institution-tab-btn">
                         <div class="form-group mb-0">
-                            <label for="institution_tag" class="sr-only">Institusi:</label>
+                            <label for="institution_tag" class="sr-only">Target:</label>
                             <select name="institution_tag" id="institution_tag" class="custom-select custom-select-lg">
-                                {% for tag, config in available_institutions.items() %}
-                                    <option value="{{ tag }}" {% if tag == selected_institution_tag %}selected{% endif %}>
-                                        {{ config.name }}
-                                    </option>
-                                {% endfor %}
+                                {% if targets_for_dropdown %}
+                                    {% for target in targets_for_dropdown %}
+                                        <option value="{{ target.tag }}" {% if target.tag == selected_institution_tag %}selected{% endif %}>
+                                            {{ target.name }}
+                                        </option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="" disabled selected>Belum ada data. Crawl via "URL Manual Baru".</option>
+                                {% endif %}
                             </select>
                         </div>
                     </div>
                     <div class="tab-pane fade p-3" id="manualUrlContent" role="tabpanel" aria-labelledby="manual-url-tab-btn">
                         <div class="form-group mb-0">
-                            <label for="manual_seed_url" class="sr-only">Seed URL Manual:</label>
+                            <label for="manual_seed_url" class="sr-only">Seed URL Manual Baru:</label>
                             <input type="url" class="form-control form-control-lg" id="manual_seed_url" name="manual_seed_url" 
-                                   placeholder="https://contoh-domain.com" disabled>
+                                   placeholder="https://contoh-domain.com (untuk crawling baru)" disabled>
                         </div>
                     </div>
                 </div>
@@ -147,8 +150,8 @@
             </button>
              <p class="text-center mt-3">
                 <small>
-                    <a href="{{ url_for('view_crawl_tree_route', institution_tag=(selected_institution_tag if selected_institution_tag else default_institution_tag)) }}" id="viewAllDataLink" class="link-view-all">
-                        Lihat Semua Data Tercrawl
+                   <a href="{{ url_for('main.view_crawl_tree_route', institution_tag=(selected_institution_tag if selected_institution_tag else default_institution_tag), crawl_method='bfs') }}" id="viewAllDataLink" class="link-view-all">
+                        Lihat Semua Data Tercrawl (BFS)
                     </a>
                 </small>
             </p>
@@ -170,116 +173,168 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        $(document).ready(function(){
-            function updateActiveFields(activeTabId) {
-                var viewAllDataLink = $('#viewAllDataLink');
-                var baseViewAllDataUrl = "{{ url_for('view_crawl_tree_route', institution_tag='PLACEHOLDER') }}";
-                var currentSelectedInstitutionTag = $('#institution_tag').val();
-                var defaultInstitutionTagJS = "{{ default_institution_tag }}";
+    $(document).ready(function(){
+        // Variabel dari Flask/Jinja2
+        var initialSelectedTagJS = "{{ selected_institution_tag or '' }}"; 
+        var keywordPrefiliJS = "{{ keyword_prefili or '' }}"; 
+        var baseViewAllDataUrl = "{{ url_for('main.view_crawl_tree_route', institution_tag='PLACEHOLDER_INSTITUTION', crawl_method='PLACEHOLDER_METHOD')|safe }}";
 
-                if (activeTabId === "#institutionContent") {
-                    $('#active_target_type').val('institution');
-                    $('#institution_tag').prop('disabled', false).prop('required', true);
-                    $('#manual_seed_url').prop('disabled', true).prop('required', false).val('');
-                    if(currentSelectedInstitutionTag) {
-                        viewAllDataLink.attr('href', baseViewAllDataUrl.replace('PLACEHOLDER', currentSelectedInstitutionTag));
-                        viewAllDataLink.text('Lihat Data untuk ' + $('#institution_tag option:selected').text().trim());
-                    } else {
-                         viewAllDataLink.attr('href', baseViewAllDataUrl.replace('PLACEHOLDER', defaultInstitutionTagJS));
-                         viewAllDataLink.text('Lihat Data untuk Target Default');
-                    }
-                } else if (activeTabId === "#manualUrlContent") {
-                    $('#active_target_type').val('manual_url');
-                    $('#institution_tag').prop('disabled', true).prop('required', false);
-                    $('#manual_seed_url').prop('disabled', false).prop('required', true);
-                    
-                    var manualUrlValue = $('#manual_seed_url').val();
-                    if (manualUrlValue) {
-                        try {
-                            var parsedManualUrl = new URL(manualUrlValue);
-                            var manualUrlDomain = parsedManualUrl.hostname.replace(/\./g, '_').replace(/-/g, '_');
-                            if (manualUrlDomain) {
-                                var manualTag = 'manual_' + manualUrlDomain;
-                                viewAllDataLink.attr('href', baseViewAllDataUrl.replace('PLACEHOLDER', manualTag));
-                                viewAllDataLink.text('Lihat Data untuk ' + parsedManualUrl.hostname);
-                            } else {
-                                 viewAllDataLink.text('Lihat Data (URL tidak valid)');
-                            }
-                        } catch (e) {
-                            viewAllDataLink.text('Lihat Data (URL tidak valid)');
+        function updateActiveFields(activeTabId) {
+            var viewAllDataLink = $('#viewAllDataLink');
+            var currentSelectedInstitutionTagFromDropdown = $('#institution_tag').val();
+            var currentCrawlMethod = $('#crawl_method').val() || (crawlMethodsJS.length > 0 ? crawlMethodsJS[0] : 'bfs');
+
+            var finalInstitutionTagForLink = null;
+            var linkTextMainPart = '';
+            var isManualUrlTabActive = (activeTabId === "#manualUrlContent");
+
+            $('#active_target_type').val(isManualUrlTabActive ? 'manual_url' : 'institution');
+            $('#institution_tag').prop('disabled', isManualUrlTabActive);
+            $('#manual_seed_url').prop('disabled', !isManualUrlTabActive);
+            if (isManualUrlTabActive) {
+                 $('#manual_seed_url').prop('required', true);
+            } else {
+                 $('#manual_seed_url').prop('required', false).val(''); // Kosongkan jika tidak aktif
+                 // Untuk tab institusi, #institution_tag required jika ada opsi
+                 $('#institution_tag').prop('required', targetsForDropdownJS.length > 0);
+            }
+
+
+            if (!isManualUrlTabActive) { // Tab "Pilih Target Tersimpan" aktif
+                if(currentSelectedInstitutionTagFromDropdown) {
+                    finalInstitutionTagForLink = currentSelectedInstitutionTagFromDropdown;
+                    linkTextMainPart = $('#institution_tag option:selected').text().trim();
+                } else if (targetsForDropdownJS.length > 0) { 
+                    finalInstitutionTagForLink = targetsForDropdownJS[0].tag; 
+                    linkTextMainPart = targetsForDropdownJS[0].name;
+                } else { 
+                    linkTextMainPart = "Tidak Ada Target";
+                }
+            } else { // Tab "URL Manual Baru" aktif
+                var manualUrlValue = $('#manual_seed_url').val().trim();
+                if (manualUrlValue) {
+                    try {
+                        var parsedManualUrl = new URL(manualUrlValue); // Perlu http/https untuk valid
+                        var domainFromParser = parsedManualUrl.hostname;
+                        var cleanedDomainForTag = domainFromParser.toLowerCase();
+                        if (cleanedDomainForTag.startsWith("www.")) {
+                             cleanedDomainForTag = cleanedDomainForTag.substring(4);
                         }
-                    } else {
-                        viewAllDataLink.text('Lihat Data (Masukkan URL manual)');
+                        var manualTag = cleanedDomainForTag.replace(/\./g, '_').replace(/-/g, '_');
+                        
+                        finalInstitutionTagForLink = manualTag; 
+                        linkTextMainPart = domainFromParser; 
+                    } catch (e) {
+                        linkTextMainPart = 'URL Manual Tdk Valid';
                     }
+                } else {
+                    linkTextMainPart = 'Input URL Manual';
                 }
             }
 
-            $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
-                var targetPaneId = $(e.target).attr("href");
-                updateActiveFields(targetPaneId);
-            });
+            if (finalInstitutionTagForLink) {
+                viewAllDataLink.attr('href', baseViewAllDataUrl
+                    .replace('PLACEHOLDER_INSTITUTION', finalInstitutionTagForLink)
+                    .replace('PLACEHOLDER_METHOD', currentCrawlMethod)
+                );
+                viewAllDataLink.text('Pohon Data: ' + linkTextMainPart + ' (' + currentCrawlMethod.toUpperCase() + ')');
+                viewAllDataLink.show();
+            } else {
+                viewAllDataLink.attr('href', '#_'); 
+                viewAllDataLink.text('Pilih/Input Target untuk Lihat Pohon Data');
+                // Pertimbangkan untuk menyembunyikan link jika tidak ada target valid
+                // viewAllDataLink.hide(); 
+            }
+        }
 
-            $('#institution_tag').on('change', function() {
-                if ($('#institution-tab-btn').hasClass('active')) { 
-                    updateActiveFields("#institutionContent");
-                }
-            });
-            
-            $('#manual_seed_url').on('input', function() {
-                 if ($('#manual-url-tab-btn').hasClass('active')) {
-                    updateActiveFields("#manualUrlContent");
-                 }
-            });
+        // Event listeners
+        $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+            updateActiveFields($(e.target).attr("href"));
+        });
+        $('#institution_tag, #crawl_method').on('change', function() {
+            if ($('#institution-tab-btn').hasClass('active')) { 
+                updateActiveFields("#institutionContent");
+            }
+        });
+        $('#manual_seed_url, #crawl_method').on('input change', function() { // 'input' untuk manual_seed_url, 'change' untuk crawl_method
+             if ($('#manual-url-tab-btn').hasClass('active')) {
+                updateActiveFields("#manualUrlContent");
+             }
+        });
 
-            var initialActiveTabId = $('#targetTypeTab .nav-link.active').attr('href');
-            updateActiveFields(initialActiveTabId || "#institutionContent");
+        // Pemanggilan awal untuk set kondisi form dan link
+        var initialActiveTabId = $('#targetTypeTab .nav-link.active').attr('href');
+        if (initialActiveTabId) { // Pastikan initialActiveTabId ada sebelum memanggil update
+             updateActiveFields(initialActiveTabId);
+        } else if ($("#institutionContent").hasClass('active')) { // Fallback jika tidak ada hash
+             updateActiveFields("#institutionContent");
+        } else if ($("#manualUrlContent").hasClass('active')) {
+             updateActiveFields("#manualUrlContent");
+        } 
 
-            $('#searchCrawlForm').on('submit', function(e) {
-                var isValid = true;
-                // Hapus pesan error lama
-                $('.invalid-feedback').remove();
-                $('input.is-invalid, select.is-invalid').removeClass('is-invalid');
+        // Validasi Form sebelum submit
+        $('#searchCrawlForm').on('submit', function(e) {
+            var isValid = true;
+            var activeType = $('#active_target_type').val();
 
+            $('.invalid-feedback').remove();
+            $('input.is-invalid, select.is-invalid').removeClass('is-invalid');
 
-                if ($('#keyword').val().trim() === '') {
-                    $('#keyword').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kata kunci wajib diisi.</div>');
+            if (activeType === 'manual_url') {
+                var manualUrl = $('#manual_seed_url').val().trim();
+                if (manualUrl === '') {
+                    $('#manual_seed_url').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">URL manual wajib diisi untuk crawling baru.</div>');
                     isValid = false;
-                }
-                
-                if ($('#active_target_type').val() === 'manual_url') {
-                    var manualUrl = $('#manual_seed_url').val().trim();
-                    if (manualUrl === '') {
-                        $('#manual_seed_url').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">URL manual wajib diisi.</div>');
-                        isValid = false;
-                    } else {
-                        try { new URL(manualUrl); } catch (err) {
-                            $('#manual_seed_url').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Format URL manual tidak valid.</div>');
-                            isValid = false;
+                } else {
+                    try { 
+                        let testUrl = new URL(manualUrl);
+                        if (!['http:', 'https:'].includes(testUrl.protocol)) {
+                             $('#manual_seed_url').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">URL harus menggunakan http atau https.</div>');
+                             isValid = false;
                         }
+                    } catch (err) {
+                        $('#manual_seed_url').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Format URL manual tidak valid.</div>');
+                        isValid = false;
                     }
                 }
-                
-                var maxDepthVal = parseInt($('#max_depth').val());
-                var maxDepthAllowedConfig = parseInt("{{ max_depth_limit_default }}"); // Ambil dari Flask config
-                if (isNaN(maxDepthVal) || maxDepthVal < 0 || maxDepthVal > 5) { // Batas validasi JS, server akan pakai config
-                    $('#max_depth').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kedalaman harus antara 0 dan 5.</div>');
-                    isValid = false;
+                // Untuk manual URL, keyword boleh kosong jika max_pages > 0 (ada aksi crawl)
+                if ($('#keyword').val().trim() === '' && parseInt($('#max_pages').val()) <= 0) {
+                     $('#keyword').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kata kunci diperlukan jika tidak ada crawling (Maks Halaman = 0).</div>');
+                     isValid = false;
                 }
 
+            } else { // target_type == 'institution'
+                if (!$('#institution_tag').val()) { // Jika dropdown kosong atau tidak ada yang dipilih
+                     $('#institution_tag').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Pilih target tersimpan atau gunakan tab URL Manual Baru.</div>');
+                     isValid = false;
+                } else if ($('#keyword').val().trim() === '') { // Untuk target institusi, keyword wajib untuk search
+                    $('#keyword').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kata kunci wajib diisi untuk pencarian pada target tersimpan.</div>');
+                    isValid = false;
+                }
+            }
+            
+            var maxDepthVal = parseInt($('#max_depth').val());
+            if (isNaN(maxDepthVal) || maxDepthVal < 0 || maxDepthVal > 5) {
+                $('#max_depth').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kedalaman harus antara 0 dan 5.</div>');
+                isValid = false;
+            }
+
+            if (activeType === 'manual_url') { // Max pages hanya relevan untuk crawling baru
                 var maxPagesVal = parseInt($('#max_pages').val());
-                if (isNaN(maxPagesVal) || maxPagesVal < 1 || maxPagesVal > 500) { // Batas validasi JS
-                    $('#max_pages').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Maks halaman harus antara 1 dan 500.</div>');
+                if (isNaN(maxPagesVal) || maxPagesVal < 1 || maxPagesVal > 500) { 
+                    $('#max_pages').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Maks halaman (untuk crawling) harus antara 1 dan 500.</div>');
                     isValid = false;
                 }
+            }
 
-                if (!isValid) {
-                    e.preventDefault(); 
-                    return;
-                }
-                
-                $('#loadingMessageGlobal').css('display', 'flex'); 
-            });
+            if (!isValid) {
+                e.preventDefault(); 
+                return;
+            }
+            
+            $('#loadingMessageGlobal').css('display', 'flex'); 
         });
+    });
     </script>
 </body>
 </html>
