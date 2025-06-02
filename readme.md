@@ -11,8 +11,14 @@ cd Andal_YHDR
 ### 2. Buat dan aktifkan Virtual Environment
 Contoh pada windows:
 ```bash
-python -m venv .venv
+# sesuaikan py atau phyton tergantung yang terinstall
+py -m venv .venv
+
+# pada command prompt
 .venv\Scripts\activate
+
+# atau jika menggunakan bash
+.venv/Scripts/activate
 ```
 
 ### 3. Install Dependencies
@@ -23,7 +29,8 @@ pip install -r requirements.txt
 
 ### 4. Jalankan Aplikasi
 ```bash
-python run.py
+# sesuaikan py atau phyton tergantung yang terinstall
+py run.py
 ```
 
 ### 5. Buka di Browser
