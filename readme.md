@@ -22,7 +22,6 @@ py -m venv .venv
 ```
 
 ### 3. Install Dependencies
-Contoh pada windows"
 ```bash
 pip install -r requirements.txt
 ```
