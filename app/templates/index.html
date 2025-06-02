@@ -7,6 +7,7 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        /* ... CSS Anda tetap sama ... */
         :root {
             --primary-color: #007bff; 
             --secondary-color: #6c757d; 
@@ -21,7 +22,7 @@
         .container { max-width: 750px; background-color: var(--light-bg); padding: 2.5rem; border-radius: 0.75rem; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.25); }
         .header-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 2.5rem; letter-spacing: 2px; color: var(--primary-color); margin-bottom: 0.5rem; }
         .header-subtitle { font-family: 'Montserrat', sans-serif; font-weight: 400; font-size: 0.9rem; color: var(--text-muted-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2rem; }
-        .form-control, .custom-select { background-color: var(--input-bg); color: var(--text-light); border: 1px solid var(--border-color); border-radius: 0.3rem; padding: 0.75rem 1rem; }
+        .form-control, .custom-select { background-color: var(--input-bg); color: var(--text-light); border: 1px solid var(--border-color); border-radius: 0.3rem; padding: 0.5rem 1rem; }
         .form-control:focus, .custom-select:focus { background-color: var(--input-bg); color: var(--text-light); border-color: var(--primary-color); box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); }
         .form-control::placeholder { color: var(--text-muted-light); }
         .form-control.is-invalid { border-color: #dc3545; }
@@ -36,11 +37,6 @@
         .form-check-label { color: var(--text-light); font-weight: normal; }
         .form-check-input { background-color: var(--input-bg); border: 1px solid var(--border-color); }
         .form-check-input:checked { background-color: var(--primary-color); border-color: var(--primary-color); }
-        .alert { margin-top: 1.5rem; border-width: 1px; }
-        .alert-danger { background-color: rgba(220, 53, 69, 0.2); color: #f8d7da; border-color: rgba(220, 53, 69, 0.5);}
-        .alert-info { background-color: rgba(13, 202, 240, 0.15); color: #cff4fc; border-color: rgba(13, 202, 240, 0.4);}
-        .alert-success { background-color: rgba(25, 135, 84, 0.15); color: #d1e7dd; border-color: rgba(25, 135, 84, 0.4);}
-        .alert-warning { background-color: rgba(255, 193, 7, 0.15); color: #fff3cd; border-color: rgba(255, 193, 7, 0.4);}
         #loadingMessageGlobal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(33,37,41,0.85); z-index: 1050; flex-direction: column; justify-content: center; align-items: center; }
         #loadingMessageGlobal .spinner-border { width: 3rem; height: 3rem; color: var(--primary-color); }
         #loadingMessageGlobal p { color: var(--text-light); margin-top: 1rem; font-size: 1.1rem; }
@@ -72,6 +68,15 @@
 
         <form action="{{ url_for('main.initiate_action_route') }}" method="POST" id="searchCrawlForm">
             <div class="form-group mb-4">
+                <label>TARGET</label> <ul class="nav nav-pills nav-fill mb-3" id="targetTypeTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="institution-tab-btn" data-toggle="pill" href="#institutionContent" role="tab" aria-controls="institutionContent" aria-selected="true">Pilih Target Tersimpan</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="manual-url-tab-btn" data-toggle="pill" href="#manualUrlContent" role="tab" aria-controls="manualUrlContent" aria-selected="false">Scrapping URL Baru</a>
+                    </li>
+                </ul>
+                <div class="form-group mb-4" id="keywordSection">
                 <label for="keyword">KATA KUNCI PENCARIAN</label>
                 <div class="input-group">
                      <div class="input-group-prepend">
@@ -84,67 +89,62 @@
                     <input type="text" class="form-control form-control-lg" id="keyword" name="keyword" 
                            placeholder="Contoh: beasiswa, penelitian, sbmptn" value="{{ keyword_prefili if keyword_prefili else '' }}">
                 </div>
-            </div>
-
-            <div class="form-group mb-4">
-                <label>TARGET</label> <ul class="nav nav-pills nav-fill mb-3" id="targetTypeTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link active" id="institution-tab-btn" data-toggle="pill" href="#institutionContent" role="tab" aria-controls="institutionContent" aria-selected="true">Pilih Target Tersimpan</a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link" id="manual-url-tab-btn" data-toggle="pill" href="#manualUrlContent" role="tab" aria-controls="manualUrlContent" aria-selected="false">URL Manual Baru</a>
-                    </li>
-                </ul>
+                 <small id="keywordHelp" class="form-text text-muted" style="color: var(--text-muted-light) !important;">Wajib diisi jika memilih "Pilih Target Tersimpan".</small>
+                </div>
                 <input type="hidden" name="target_type" id="active_target_type" value="institution"> 
                 <div class="tab-content" id="targetTypeTabContent">
                     <div class="tab-pane fade show active p-3" id="institutionContent" role="tabpanel" aria-labelledby="institution-tab-btn">
                         <div class="form-group mb-0">
-                            <label for="selected_db_file_target" class="sr-only">Pilih Database Target:</label>
+                            <label for="selected_db_file_target">Pilih Database Target:</label>
                             <select name="selected_db_file" id="selected_db_file_target" class="custom-select custom-select-lg">
-                                {% if db_targets_for_dropdown %} {% for target_db in db_targets_for_dropdown %}
+                                {% if db_targets_for_dropdown %}
+                                    {% for target_db in db_targets_for_dropdown %}
                                         <option value="{{ target_db.value }}" {% if target_db.value == selected_db_target %}selected{% endif %}>
                                             {{ target_db.name }}
                                         </option>
                                     {% endfor %}
                                 {% else %}
-                                    <option value="" disabled selected>Belum ada data DB. Crawl via "URL Manual Baru".</option>
+                                    <option value="" disabled selected>Belum ada data DB. Scraping via "URL Manual Baru".</option>
                                 {% endif %}
                             </select>
                         </div>
                     </div>
                     <div class="tab-pane fade p-3" id="manualUrlContent" role="tabpanel" aria-labelledby="manual-url-tab-btn">
                         <div class="form-group mb-0">
-                            <label for="manual_seed_url" class="sr-only">Seed URL Manual Baru:</label>
+                            <label for="manual_seed_url">Seed URL Manual Baru:</label>
                             <input type="url" class="form-control form-control-lg" id="manual_seed_url" name="manual_seed_url" 
-                                   placeholder="https://contoh-domain.com (untuk crawling baru)" disabled>
+                                   placeholder="https://contoh-domain.com (untuk scraping baru)" disabled>
                             <small id="manualUrlHelp" class="form-text text-muted" style="color: var(--text-muted-light) !important;">Wajib diisi jika tab ini aktif.</small>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="form-group mb-3" id="crawlMethodGroup" style="display: none;"> <label for="crawl_method" id="label_crawl_method">METODE CRAWL</label> <select name="crawl_method" id="crawl_method" class="custom-select custom-select-lg">
+            <div class="form-group mb-3" id="crawlMethodGroup">
+                <label for="crawl_method" id="label_crawl_method">METODE</label>
+                <select name="crawl_method" id="crawl_method" class="custom-select custom-select-lg">
                     {% for method in crawl_methods %}
                     <option value="{{ method }}" {% if method == 'bfs' %}selected{% endif %}>{{ method|upper }}</option>
                     {% endfor %}
                 </select>
-                <small id="info_crawl_method" class="form-text text-muted" style="color: var(--text-muted-light) !important;">Metode untuk crawling dan struktur DB.</small>
+                <small id="info_crawl_method" class="form-text text-muted" style="color: var(--text-muted-light) !important;"></small>
             </div>
 
-            <div id="crawlParamsSection" style="display: none;"> <div class="form-row mb-3">
+            <div id="crawlParamsSection">
+                <div class="form-row mb-3">
                     <div class="form-group col-md-6" id="group_max_depth"> 
                         <label for="max_depth">KEDALAMAN (0-5)</label> 
                         <input type="number" class="form-control form-control-lg" id="max_depth" name="max_depth" value="{{ max_depth_limit_default }}" min="0" max="5">
                     </div>
                     <div class="form-group col-md-6" id="group_max_pages"> 
-                        <label for="max_pages">MAKS HALAMAN (0-500)</label>
-                        <input type="number" class="form-control form-control-lg" id="max_pages" name="max_pages" value="{{ max_pages_default }}" min="0" max="500">
+                        <label for="max_pages">MAKS HALAMAN (1-500)</label> <input type="number" class="form-control form-control-lg" id="max_pages" name="max_pages" value="{{ max_pages_default }}" min="1" max="500">
+                        <small id="maxPagesHelp" class="form-text text-muted" style="color: var(--text-muted-light) !important;"></small>
                     </div>
                 </div>
                 <div class="form-group form-check mb-4" id="group_clear_data">
                     <input type="checkbox" class="form-check-input" id="clear_data_on_search_crawl" name="clear_data_on_search_crawl" value="yes">
                     <label class="form-check-label" for="clear_data_on_search_crawl">
-                        Hapus data lama untuk target ini sebelum crawl baru?
+                        Hapus data lama untuk target ini sebelum scraping baru?
                     </label>
                 </div>
             </div>
@@ -167,7 +167,7 @@
 
     <div id="loadingMessageGlobal">
         <div class="spinner-border" role="status">
-            <span class="sr-only">Loading...</span>
+            <span>Loading...</span>
         </div>
         <p class="mt-3"><strong>MEMPROSES PERMINTAAN ANDA...</strong></p>
         <p><small>Proses crawling sedang berjalan dan bisa memakan waktu. Mohon bersabar dan jangan menutup atau me-refresh halaman ini.</small></p>
@@ -178,13 +178,11 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
     $(document).ready(function(){
-        // Variabel dari Flask/Jinja2
-        var dbTargetsForDropdownJS = {{ db_targets_for_dropdown|tojson|safe }}; // Variabel baru
-        var initialSelectedDbTargetJS = "{{ selected_db_target or '' }}"; // Variabel baru
+        var dbTargetsForDropdownJS = {{ db_targets_for_dropdown|tojson|safe }};
+        var initialSelectedDbTargetJS = "{{ selected_db_target or '' }}"; 
         var crawlMethodsJS = {{ crawl_methods|tojson|safe }};
         var defaultMaxDepthJS = parseInt("{{ max_depth_limit_default }}");
         var defaultMaxPagesJS = parseInt("{{ max_pages_default }}");
-
         var baseViewAllDataUrl = "{{ url_for('main.view_crawl_tree_route', institution_tag='PLACEHOLDER_INSTITUTION', crawl_method='PLACEHOLDER_METHOD')|safe }}";
 
         function updateActiveFields(activeTabId) {
@@ -192,62 +190,75 @@
             
             $('#active_target_type').val(isManualUrlTabActive ? 'manual_url' : 'institution');
             
-            // Enable/disable target selection fields
-            $('#selected_db_file_target').prop('disabled', isManualUrlTabActive); // Dropdown DB
-            $('#manual_seed_url').prop('disabled', !isManualUrlTabActive);
+            var $keywordSection = $('#keywordSection');
+            var $keywordInput = $('#keyword');
+            var $selectedDbFileTarget = $('#selected_db_file_target');
+            var $manualSeedUrlInput = $('#manual_seed_url');
             
-            var $crawlMethodGroup = $('#crawlMethodGroup'); // Div untuk Metode Crawl/DB
-            var $crawlParamsSection = $('#crawlParamsSection'); // Div untuk Kedalaman, Maks Halaman, Clear Data
+            var $crawlMethodGroup = $('#crawlMethodGroup');
+            var $labelCrawlMethod = $('#label_crawl_method');
+            var $infoCrawlMethod = $('#info_crawl_method');
+            var $selectCrawlMethod = $('#crawl_method');
+            
+            var $crawlParamsSection = $('#crawlParamsSection');
             var $maxDepthInput = $('#max_depth');
             var $maxPagesInput = $('#max_pages');
+            var $maxPagesHelp = $('#maxPagesHelp');
             var $clearDataCheckbox = $('#clear_data_on_search_crawl');
-            var $labelCrawlMethod = $('#label_crawl_method'); // Label untuk select crawl_method
-            var $infoCrawlMethod = $('#info_crawl_method');   // Info text untuk select crawl_method
-            var $selectCrawlMethod = $('#crawl_method');      // Select crawl_method
             var $submitButton = $('#submitButton');
 
-            if (isManualUrlTabActive) { // Tab "URL Manual Baru" aktif
-                 $('#manual_seed_url').prop('required', true);
+            if (isManualUrlTabActive) { // Tab "URL Manual Baru (Scraping)"
+                 $keywordSection.hide();
+                 $keywordInput.val('').prop('required', false); // Kosongkan dan tidak wajib
+
+                 $selectedDbFileTarget.prop('disabled', true);
+                 $manualSeedUrlInput.prop('disabled', false).prop('required', true);
                  
-                 $crawlMethodGroup.show(); // Tampilkan grup metode crawl
-                 $labelCrawlMethod.text('METODE CRAWL');
-                 $infoCrawlMethod.text('Metode untuk crawling dan struktur DB.');
+                 $crawlMethodGroup.show();
+                 $labelCrawlMethod.text('METODE SCRAPING');
+                 $infoCrawlMethod.text('Metode untuk scraping dan struktur DB.');
                  $selectCrawlMethod.prop('disabled', false);
 
-                 $crawlParamsSection.show(); // Tampilkan parameter crawl spesifik
+                 $crawlParamsSection.show();
                  $maxDepthInput.prop('disabled', false).val(defaultMaxDepthJS);
-                 $maxPagesInput.prop('disabled', false).val(defaultMaxPagesJS);
+                 $maxPagesInput.prop('disabled', false).val(defaultMaxPagesJS).prop('min', 1); // Maks halaman min 1 untuk scraping
+                 $maxPagesHelp.text('Jumlah halaman yang akan di-scrape (1-500).');
+                 $('#group_clear_data').show(); // Tampilkan opsi clear data
                  $clearDataCheckbox.prop('disabled', false).prop('checked', false);
                  
-                 $submitButton.html('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg> CRAWL & CARI');
-                 $('#keyword').prop('required', false);
-            } else { // Tab "Pilih Target Tersimpan" aktif
-                 $('#manual_seed_url').prop('required', false).val('');
-                 $('#selected_db_file_target').prop('required', dbTargetsForDropdownJS.length > 0);
-                 
-                 $crawlMethodGroup.hide(); // Sembunyikan grup metode crawl/DB
-                 $selectCrawlMethod.prop('disabled', true); // Disable karena metode sudah include di nama DB
+                 $submitButton.html('MULAI SCRAPING'); // Ganti teks tombol
+            } else { // Tab "Pilih Target Tersimpan"
+                 $keywordSection.show();
+                 $keywordInput.prop('required', true);
 
-                 $crawlParamsSection.hide(); // Sembunyikan parameter crawl spesifik
+                 $selectedDbFileTarget.prop('disabled', false).prop('required', dbTargetsForDropdownJS.length > 0);
+                 $manualSeedUrlInput.prop('disabled', true).prop('required', false).val('');
+                 
+                 $crawlMethodGroup.hide(); // Sembunyikan metode karena sudah include di nama DB
+                 $selectCrawlMethod.prop('disabled', true);
+
+                 $crawlParamsSection.hide(); // Sembunyikan parameter scraping
                  $maxDepthInput.prop('disabled', true);
-                 $maxPagesInput.prop('disabled', true);
+                 $maxPagesInput.prop('disabled', true).prop('min', 0); // Kembalikan min ke 0 jika perlu
+                 $maxPagesHelp.text('');
+                 $('#group_clear_data').hide();
                  $clearDataCheckbox.prop('disabled', true).prop('checked', false);
 
-                 $submitButton.html('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg> CARI DI TARGET');
-                 $('#keyword').prop('required', true);
+                 $submitButton.html('CARI DI TARGET');
             }
+            updateViewAllDataLink(isManualUrlTabActive);
+        } 
 
-            // "Lihat Semua Data Tercrawl" link logic
+        function updateViewAllDataLink(isManualUrlTabActiveCurrently) {
             var viewAllDataLink = $('#viewAllDataLink');
             var finalInstitutionTagForLink = null;
             var finalCrawlMethodForLink = null;
             var linkTextMainPart = '';
 
-            if (!isManualUrlTabActive) { 
+            if (!isManualUrlTabActiveCurrently) { 
                 var selectedDbFile = $('#selected_db_file_target').val();
                 if(selectedDbFile && selectedDbFile !== "") {
-                    // Parse tag and method from selectedDbFile (e.g., "itb_ac_id_bfs.db")
-                    var dbFilenameNoExt = selectedDbFile.slice(0, -3); // remove .db
+                    var dbFilenameNoExt = selectedDbFile.slice(0, -3);
                     var parts = dbFilenameNoExt.split('_');
                     if (parts.length >= 2) {
                         finalCrawlMethodForLink = parts.pop();
@@ -261,12 +272,11 @@
                     try {
                         var parsedManualUrl = new URL(manualUrlValue);
                         var domainFromParser = parsedManualUrl.hostname;
-                        var cleanedDomainForTag = domainFromParser.toLowerCase();
-                        if (cleanedDomainForTag.startsWith("www.")) { cleanedDomainForTag = cleanedDomainForTag.substring(4); }
+                        var cleanedDomainForTag = domainFromParser.toLowerCase().replace("www.", "");
                         finalInstitutionTagForLink = cleanedDomainForTag.replace(/\./g, '_').replace(/-/g, '_');
                         linkTextMainPart = domainFromParser; 
-                        finalCrawlMethodForLink = $selectCrawlMethod.val(); // Ambil dari dropdown metode crawl
-                    } catch (e) { /* Biarkan kosong jika URL tidak valid */ }
+                        finalCrawlMethodForLink = $('#crawl_method').val();
+                    } catch (e) { /* Biarkan kosong */ }
                 }
             }
 
@@ -280,18 +290,17 @@
             } else {
                 viewAllDataLink.hide();
             }
-        } 
+        }
 
         $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
             updateActiveFields($(e.target).attr("href"));
         });
-        // Event listener untuk selected_db_file_target dan crawl_method (jika manual aktif)
         $('#selected_db_file_target, #crawl_method').on('change', function() {
-            updateActiveFields($('#targetTypeTab .nav-link.active').attr("href"));
+            updateViewAllDataLink($('#targetTypeTab .nav-link.active').hasClass('manual-url-tab-btn')); // Cek class tab aktif
         });
-        $('#manual_seed_url').on('input', function() { 
+         $('#manual_seed_url').on('input', function() { 
              if ($('#manual-url-tab-btn').hasClass('active')) {
-                updateActiveFields("#manualUrlContent");
+                updateViewAllDataLink(true);
              }
         });
         
@@ -301,38 +310,38 @@
         $('#searchCrawlForm').on('submit', function(e) {
             var isValid = true;
             var activeType = $('#active_target_type').val();
-
             $('.invalid-feedback').remove();
             $('input.is-invalid, select.is-invalid').removeClass('is-invalid');
-
-            var keywordVal = $('#keyword').val().trim();
 
             if (activeType === 'manual_url') {
                 var manualUrl = $('#manual_seed_url').val().trim();
                 if (manualUrl === '') {
-                    $('#manual_seed_url').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">URL manual wajib diisi jika tab ini aktif.</div>');
+                    $('#manual_seed_url').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">URL manual wajib diisi.</div>');
                     isValid = false;
-                } else { /* ... validasi URL ... */ } // Validasi URL tetap
+                } else { /* ... validasi format URL ... */ }
                 
                 var maxPagesVal = parseInt($('#max_pages').val());
-                if (keywordVal === '' && (isNaN(maxPagesVal) || maxPagesVal <= 0)) {
-                     $('#keyword').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kata kunci diperlukan jika tidak ada crawling (Maks Halaman = 0 atau kurang).</div>');
+                if (isNaN(maxPagesVal) || maxPagesVal < 1 || maxPagesVal > 500) { 
+                    $('#max_pages').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Maks halaman (untuk scraping) harus antara 1 dan 500.</div>');
+                    isValid = false;
+                }
+                var maxDepthVal = parseInt($('#max_depth').val());
+                if (isNaN(maxDepthVal) || maxDepthVal < 0 || maxDepthVal > 5) {
+                     $('#max_depth').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kedalaman harus antara 0 dan 5.</div>');
                      isValid = false;
                 }
-                // Validasi max_depth dan max_pages
-                var maxDepthVal = parseInt($('#max_depth').val());
-                if (isNaN(maxDepthVal) || maxDepthVal < 0 || maxDepthVal > 5) { /* ... error ... */ isValid = false; }
-                if (isNaN(maxPagesVal) || maxPagesVal < 0 || maxPagesVal > 500) { /* ... error ... */ isValid = false; }
-
             } else { // target_type == 'institution'
+                var keywordVal = $('#keyword').val().trim();
+                if (keywordVal === '') { 
+                    $('#keyword').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kata kunci wajib diisi.</div>');
+                    isValid = false;
+                }
                 var selectedDb = $('#selected_db_file_target').val();
                 if (!selectedDb && dbTargetsForDropdownJS.length > 0) { 
-                     $('#selected_db_file_target').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Pilih target DB atau gunakan tab URL Manual Baru.</div>');
+                     $('#selected_db_file_target').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Pilih target DB.</div>');
                      isValid = false;
-                } else if (dbTargetsForDropdownJS.length === 0) { /* ... error ... */ isValid = false; }
-
-                if (keywordVal === '') { 
-                    $('#keyword').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Kata kunci wajib diisi untuk pencarian pada target tersimpan.</div>');
+                } else if (dbTargetsForDropdownJS.length === 0) { 
+                    $('#selected_db_file_target').addClass('is-invalid').after('<div class="invalid-feedback" style="display:block;">Tidak ada target tersimpan. Lakukan scraping dulu.</div>');
                     isValid = false;
                 }
             }

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rute Tautan: {{ target_url|truncate(60) }} - {{ project_name }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --dark-bg: #212529;
+            --light-bg: #2c3034; 
+            --text-light: #f8f9fa;
+            --text-muted-light: #adb5bd;
+            --border-color: #495057;
+        }
+        body { 
+            background-color: var(--dark-bg); 
+            color: var(--text-light); 
+            font-family: 'Open Sans', sans-serif; 
+            padding-top: 1.5rem; 
+            padding-bottom: 2rem;
+        }
+        .container-custom { 
+            max-width: 900px; 
+            background-color: var(--light-bg); 
+            padding: 2rem; 
+            border-radius: 0.5rem; 
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2);
+            margin: auto;
+        }
+        .page-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .page-header h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        .page-header .text-muted { color: var(--text-muted-light) !important; }
+
+        .path-list { 
+            list-style-type: none; 
+            padding-left: 0; 
+            position: relative;
+        }
+        .path-list::before { /* Garis vertikal utama */
+            content: '';
+            position: absolute;
+            left: 10px; /* Sesuaikan dengan padding ikon */
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background-color: var(--border-color);
+            z-index: 1;
+        }
+
+        .path-list li {
+            background-color: var(--dark-bg); /* Sedikit lebih gelap dari container */
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 0.3rem;
+            position: relative;
+            padding-left: 35px; /* Ruang untuk ikon/garis */
+            border: 1px solid var(--border-color);
+        }
+        .path-list li::before { /* Ikon titik atau panah per item */
+            content: "●"; 
+            position: absolute;
+            left: 4px; /* Sesuaikan agar di tengah garis vertikal */
+            top: 12px; 
+            color: var(--primary-color);
+            font-size: 1.5em; 
+            line-height: 1;
+            background-color: var(--light-bg); /* Agar menutupi garis vertikal utama */
+            padding: 0 3px; /* Jarak dari garis */
+            z-index: 2;
+        }
+        .path-list li .url-link { 
+            font-size: 0.85em; 
+            color: var(--text-muted-light); 
+            word-break: break-all; 
+            display: block;
+            margin-top: 0.25rem;
+        }
+        .path-list li .anchor-text { 
+            font-style: italic; 
+            color: #a0aec0; /* Lebih terang dari text-muted */
+            font-size: 0.9em; 
+        }
+        .path-list li .page-title { 
+            font-weight: 500; 
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-color);
+        }
+        .path-list li .page-title a {color: var(--primary-color);}
+        .path-list li .page-title a:hover {color: #3395ff;}
+
+        .level-badge { 
+            font-size: 0.75em; 
+            padding: 0.25em 0.55em; 
+            background-color: var(--secondary-color) !important; 
+            color: white !important; 
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        .footer-note small { color: var(--text-muted-light); }
+        .btn-back-form {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+        .btn-back-form:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-custom">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('main.show_search_results_route') }}" class="btn btn-sm btn-back-form">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16" style="vertical-align: -0.125em;">
+                  <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                </svg>
+                Kembali ke Hasil Pencarian
+            </a>
+            <h3 class="mb-0 text-center">
+                Rute Tautan
+            </h3>
+            <span class="text-muted">{{ current_institution_name }}</span>
+        </div>
+
+        <h5 class="mb-1" style="font-family: 'Montserrat', sans-serif;">Target Halaman:</h5>
+        <p><a href="{{ target_url }}" target="_blank" class="url-link" style="font-size: 1em;">{{ target_url }}</a></p>
+        
+        <hr style="border-color: var(--border-color);">
+
+        {% if error_message %}
+            <div class="alert alert-warning mt-3" role="alert">
+                <strong>Informasi:</strong> {{ error_message }}
+            </div>
+        {% endif %}
+
+        {% if path_data and path_data|length > 0 %}
+            <h5 class="mt-4 mb-3" style="font-family: 'Montserrat', sans-serif;">Langkah-langkah Rute:</h5>
+            <ul class="path-list">
+                {% for step in path_data %}
+                <li>
+                    <div class="page-title">
+                        <span class="level-badge">L{{ step.level }}</span>
+                        <a href="{{ step.url }}" target="_blank" title="Kunjungi: {{ step.url }}">{{ step.title or step.url }}</a>
+                    </div>
+                    {% if loop.index0 == 0 %} {# Ini adalah seed URL #}
+                        <span class="anchor-text d-block mt-1">(URL Awal / Seed)</span>
+                    {% elif step.anchor_text %} {# Untuk langkah berikutnya, tampilkan anchor text jika ada #}
+                        <span class="anchor-text d-block mt-1">Tautan dari induk via: "<em>{{ step.anchor_text|truncate(120) }}</em>"</span>
+                    {% endif %}
+                     <a href="{{ step.url }}" target="_blank" class="url-link" title="Kunjungi: {{ step.url }}">{{ step.url|truncate(100) }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% elif not error_message %} {# Tidak ada path_data dan tidak ada error_message eksplisit #}
+            <div class="alert alert-info text-center mt-4" role="alert">
+                Tidak ada data rute yang dapat ditampilkan untuk halaman ini.
+            </div>
+        {% endif %}
+        
+        <hr class="my-4" style="border-color: var(--border-color);">
+        <div class="text-center">
+            <a href="{{ url_for('main.index', db_target=db_target_for_backlink, keyword=keyword_for_backlink) }}" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-door-fill" viewBox="0 0 16 16" style="vertical-align: -0.125em; margin-right: 0.3em;">
+                  <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
+                </svg>
+                Ke Halaman Utama Pencarian
+            </a>
+        </div>
+
+    </div>
+    <p class="text-center footer-note mt-4"><small>&copy; {{ g.current_year }} {{ project_name }}. DB: {{ db_name_used }}</small></p>
+</body>
+</html>

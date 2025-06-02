@@ -174,16 +174,21 @@
                 {% for result in results %}
                     <div class="result-item">
                         <h5>
-                            <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>
+                            <a href="{{ result.url }}" target="_blank">{{ result.title or 'Tanpa Judul' }}</a>
                             <span class="badge badge-secondary level-badge ml-2">L{{ result.level }}</span>
                         </h5>
-                        <a href="{{ result.url }}" target="_blank" class="url-link" title="Kunjungi: {{ result.url }}">{{ result.url }}</a>
-                        {% if result.anchor_text and result.level > 0 %}
-                            <small class="anchor-text-info d-block">Dari <a href="{{ result.parent_url }}" target="_blank" title="Induk: {{result.parent_url}}">induk</a> via: "{{ result.anchor_text | truncate(70) }}"</small>
-                        {% elif result.level == 0 %}
-                            <small class="anchor-text-info d-block">(URL Awal / Seed)</small>
-                        {% endif %}
                         <p class="preview-text mt-2 mb-0">{{ result.content_preview | safe | truncate(300) }}</p>
+                        
+                        <a href="{{ url_for('main.show_link_path_page', 
+                                            institution_tag=institution_tag,
+                                            crawl_method=crawl_method_searched,
+                                            target_url_encoded=result.url | urlencode) }}"
+                        class="btn btn-outline-info btn-sm btn-view-route mt-2"> {# Opsional: buka di tab baru #}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-signpost-split" viewBox="0 0 16 16" style="vertical-align: -0.125em; margin-right: 0.2em;">
+                                <path d="M7 7V1.414a1 1 0 0 1 2 0V7h5a1 1 0 0 1 .8.4l.975 1.3a.5.5 0 0 1 0 .6L14.8 10.6a1 1 0 0 1-.8.4H9v5.586a1 1 0 0 1-2 0V11H1.5a1 1 0 0 1-.8-.4L-.275 9.3a.5.5 0 0 1 0-.6L.725 7.4a1 1 0 0 1 .8-.4h5zm1 3V8H2.5l-.8 1L2.5 10H8zm0-1H2.5L1.7 8 2.5 7H8v1zM13.5 8H9V7h4.5l.8 1-.8 1z"/>
+                            </svg>
+                            Lihat Rute Link
+                        </a>
                     </div>
                 {% endfor %}
             {% elif not error_message and keyword %} 
