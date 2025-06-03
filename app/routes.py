@@ -270,7 +270,7 @@ def process_crawling_route():
                 self_log_for_template.append(f"Database '{g.current_db_name}' diinisialisasi/dibuat.")
             except Exception as e_init:
                 self_log_for_template.append(f"Database '{g.current_db_name}' tidak ada dan AUTO_INIT_DB false.")
-                gg.current_db_name = None
+                g.current_db_name = None
                 db_path_for_action = None
     elif db_existed_before_init:
          self_log_for_template.append(f"Database '{g.current_db_name}' sudah ada, akan digunakan.")
@@ -299,7 +299,7 @@ def process_crawling_route():
                 pages_updated = sum(1 for msg in crawl_log_messages if 'UPDATE:' in msg)
                 visited_count = getattr(crawler_instance, 'pages_visited_count', 0)
                 
-                if pages_added == 0 and db_was_newly_created_this_request:
+                if (pages_added == 0 | pages_added == 1) and db_was_newly_created_this_request:
                     # Logika penghapusan DB baru yang kosong (sama seperti sebelumnya)
                     self_log_for_template.append(f"PERINGATAN: Crawling untuk '{current_institution_name}' tidak menghasilkan data baru.")
                     try:
