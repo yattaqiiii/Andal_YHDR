@@ -46,7 +46,6 @@
                 </svg>
                 Struktur Data Crawl: <strong>{{ current_institution_name }}</strong>
             </h3>
-            <span class="text-muted">Maks Kedalaman: {{ max_depth_limit }}</span>
         </div>
         
         {% macro render_node(node) %}
@@ -74,7 +73,7 @@
 
         <div class="card mt-3">
             <div class="card-header card-header-custom">
-                Representasi Pohon Halaman (Max {{ max_depth_limit }} Level)
+                Representasi Pohon Halaman
             </div>
             <div class="card-body">
                 <div class="tree">
